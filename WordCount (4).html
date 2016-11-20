@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<html>   
+    <head>
+        
+        <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+
+        <style>
+        
+            html {
+                background: no-repeat center center;
+                background-size: cover;
+            }
+            body { 
+                font-family: "Times New Roman", Times, serif;
+                line-height: 1em;
+                color: "blue"; 
+                word-wrap: break-word;
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+            h1 { 
+                letter-spacing: 2px;  
+                color: #37f74d;
+                line-height: 1;
+            }
+            h2 {
+                color: #fab700;
+                font-size: 20px;
+                opacity: 0.8;
+            }
+            #javascript {
+                margin-left: 0px;
+            }
+            .button-encoder {
+                color: #ffffff; font-family: "Times New Roman";
+                font-size: 12px;
+                background: #bf310f;
+                padding: 5px 10px 5px 10px;
+                border: 1px solid white;
+            }
+            .button-encoder:hover {
+                background: #dbff18;
+                color: #000000;
+                font-size: 60px;
+            }
+            
+            #title {
+                text-align: left;
+                padding-right: 40px;
+                padding-left: 40px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+                background: #000000;
+                margin-top: 30px;
+                margin-bottom: 20px;
+            }
+            #title:hover {
+                border: 1px solid white;
+                background: #a5009f;
+            }
+            #intro {
+                text-align: justify;
+                padding-right: 40px;
+                padding-left: 40px;
+                padding-top: 20px;
+                padding-bottom: 20px;
+                background: #000000;
+                margin-top: 30px;
+                margin-bottom: 20px;
+            }
+            #intro:hover {
+                background: #a50b0b;
+                border: 1px solid white;
+                color: white;
+            }
+            
+            #footer {
+                text-align: justify;
+                padding-right: 40px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                padding-left: 40px;
+                background: #000000;
+                margin-top: 30px;
+                margin-bottom: 20px;
+                position: float;
+                bottom: 0px;
+                color: #5cf442;
+                margin-right: 40px;
+            }
+            #footer:hover {
+                background: #a50b0b;
+                border: 1px solid white;
+                color: white;
+            }
+            #contact {
+                text-align: left;
+                font-size: 12px;
+                color: #37f74d;
+            }
+            #contact:hover {
+                color: #ffe200;
+                font-size: 20px;
+            }
+        
+        </style>
+        
+        <title>RAE Word Count Optimizer</title>
+        <meta charset="UTF-8">
+        
+    </head>
+    
+    <body id="yes" background="A2.jpg";>
+        
+    <div id="title">
+    <h1>Really Awesome Effective (RAE) Word Count Optimizer</h1>
+    <h2>Ace those essays! We're here to optimize your word count!</h2>
+    </div>
+    
+    <div id="textbox">
+    <textarea rows="17" cols="120" type="text" id="myform">YO. Paste your blue un-optimized essay here. We got the rest. We would describe it as simple and easy.</textarea><br>
+    </div>
+    <p></p>
+    
+    <div id="black">
+    <h3 id="congrats"></h3> 
+	
+	<p id="paragraph"></p>
+    
+    <div id="javascript">
+        <script>
+            
+			/**
+			rules:
+			Adjectives beginning with a capital letter (think Chilean, American, etc) are left alone
+			All other adjectives are given a superfluous adverb
+			*/
+		
+			//global variables
+			var ADJ=['really', 'incredibly', 'extremely', 'genuinely', 'unquestionably', 'truly', 'exceedingly', 'especially', 'extraordinarily', 'very', 'strikingly', 'unusually', 'remarkably', 'greatly', 'excessively', 'astonishingly ', 'considerably ', 'exceptionally', 'notably', 'usually', 'simply', 'relatively', 'fairly', 'widely', 'naturally', 'clearly', 'merely', 'significantly', 'perfectly', 'absolutely', 'quite ', 'pretty'] //lists of words for replacements
+			var approvedTypes={"+ADJ": ADJ} //words which can be paired with superfluous adjectives
+			var punctuationTypes=["+CM", "+PUNCT", "+SENT", "+POSS"] //types which represent punctuation and should therefore be ignored in the API output
+		
+			//word count
+			function countWords(text){
+				return text.trim().split(" ").length
+			}
+			
+			//get a random superfluous adverb
+			function getRandomAddition(type){
+				var options=approvedTypes[type]
+				var rand=Math.floor(Math.random()*options.length)
+				return options[rand]
+			}
+			
+			//update the text of the clicked word to a (hopefully) new random superfluous word
+			function changeSuggestion(id, type){
+				document.getElementById("id"+id).innerHTML=getRandomAddition(type)
+			}
+			
+			//accept the suggestion by making it the text color and removing the buttons
+			function acceptSuggestion(id){
+				var elem=document.getElementById("id"+id)
+				elem.onclick = null //remove the on clicked
+				elem.style.color="#000000"
+				removeButtons(id)
+			}
+			
+			
+			//reject the sugestion by removing the word and its buttons
+			function removeSuggestion(idNum){
+				var text = document.getElementById("id"+idNum);
+				text.parentNode.removeChild(text);
+				removeButtons(idNum)
+			}
+			
+			//remove the accept and reject buttons
+			function removeButtons(idNum){
+				var accept = document.getElementById("id"+idNum+"Accept")
+				var reject = document.getElementById("id"+idNum+"Reject");
+				accept.parentNode.removeChild(accept);
+				reject.parentNode.removeChild(reject)
+			}
+			
+			//use open xerox api to determine the part of speech of each word in context
+			function partsOfSpeech(intialWordCount, str){
+                 
+				//var numNeeded=desiredWordCount-initialWordCount+10
+				
+				var http = new XMLHttpRequest();
+				var url = "https://services.open.xerox.com/bus/op/fst-nlp-tools/PartOfSpeechTaggingString";
+				var text = str
+				var params = "inputtext="+text+"&language=English";
+				
+				http.open("POST", url, true);
+
+				//Send the proper header information along with the request
+				http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				var pos=[]
+				http.onreadystatechange = function() {//Call a function when the state changes.
+					if(http.readyState == 4 && http.status == 200) {
+						//get parts of speech list
+						var apiOutput=http.responseText
+						
+						//get the list of words
+						var words=str.split(" ") //seperate the words so new words can be inserted
+						
+						var key="<SPAN class=\\\"pos-tag\\\">"
+						while(apiOutput.includes(key) && pos.length<words.length){
+							var index=apiOutput.indexOf(key)
+							apiOutput=apiOutput.substring(index+key.length,apiOutput.length)
+							var part=apiOutput.substring(0, apiOutput.indexOf("</SPAN>"))
+							
+							//make sure punctuation is ignored so words and pos have corresponding entries and the same length
+							if(!punctuationTypes.includes(part)){
+								//not punctuation so add to list
+								pos.push(part)
+								
+							}
+						}
+						
+						var out="" //hold the output
+						var count=0 //count the number of woirds added
+						for(j = 0; j < words.length; j++){
+							if(!Object.keys(approvedTypes).includes(pos[j])){
+								//not an approved word so do nothing
+							}else if(words[j].charAt(0) == words[j].charAt(0).toUpperCase()){
+								//starts with a capital letter so ignore
+							}else{
+								//passed all tests so add a superfluous word
+								var addition=getRandomAddition(pos[j])
+								count++
+								//var id="\"id"+count+"\"" //for example, "id4"
+								var id="id"+count.toString()
+								out+="<span id=\""+id+"\" style=\"color: #0000ff\" onClick=\"changeSuggestion("+count+",\'"+pos[j]+"\')\">"+addition+"</span> "
+								out+="<span id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>"
+								out+="<span id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> "
+								
+								
+							}
+							out+=words[j]+" "
+						}
+						showResults(intialWordCount, count, out)
+					}
+				}
+				http.send(params);
+				//POST https://services.open.xerox.com/bus/op/fst-nlp-tools/PartOfSpeechTaggingString
+				//Content-Type: application/x-www-form-urlencoded
+				//Content-Length: 28
+				//inputtext=text&language=text
+			}
+			
+			//display the results to the user
+			function showResults(initialWordCount, numAdded, out){
+				finalWordCount = initialWordCount+numAdded
+				document.getElementById("progress").innerHTML = "Initial word count was " + initialWordCount + "; NEW word count is " + finalWordCount + "."
+            
+                document.getElementById("paragraph").innerHTML = out;
+			}
+			
+            var encoder = function() {
+                document.body.style.backgroundImage = "url('A1.jpg')";
+				var str=document.getElementById("myform").value
+				
+				//input protection
+				str = str.trim() //remove any leading or trailing white space (messes up word count)
+				
+				//remove any new lines with spaces
+				str = str.replace(/\n/g," ")
+				
+				//remove any multiple spaces because it will mess up splitting by spaces
+				while(str.includes("  ")){
+					str = str.replace(/  /g," ") //replace double spaces with single spaces
+				}
+				initialWordCount=countWords(str)
+				partsOfSpeech(initialWordCount, str)
+            };
+            
+        </script>
+    </div>
+    <button class="button-encoder pure-button" onclick="encoder()">Click me! Optimize word count NOW!</button><p id="progress"></p>
+    </div>
+    
+    <div id="footer">    
+        <p><strong>Like this service? Send us a message :)</strong></p>
+        <p id="contact">©2016 RAE Word Count Optimizer |  Questions? Email rae_word_count_optimizer@duke.edu</p>
+    </div>
+	
+    </body>
+    
+</html>
