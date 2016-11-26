@@ -119,14 +119,14 @@
     </div>
     
     <div id="textbox">
-    <textarea rows="17" cols="120" type="text" id="myform">YO. Paste your blue un-optimized essay here. We got the rest. We would describe it as simple and easy.</textarea><br>
+    <textarea rows="17" cols="120" type="text" id="myform">Paste your un-optimized essay here. We got the rest. We would describe it as simple and easy.</textarea><br>
     </div>
     <p></p>
     
     <div id="black">
     <h3 id="congrats"></h3> 
 	
-	<p id="paragraph"></p>
+	<p id="paragraph" style="background-color:powderblue;"></p>
     
     <div id="javascript">
         <script>
@@ -141,13 +141,16 @@
 			var ADJ=['really', 'incredibly', 'extremely', 'genuinely', 'unquestionably', 'truly', 'exceedingly', 'especially', 'extraordinarily', 'very', 'strikingly', 'unusually', 'remarkably', 'greatly', 'excessively', 'astonishingly ', 'considerably ', 'exceptionally', 'notably', 'usually', 'simply', 'relatively', 'fairly', 'widely', 'naturally', 'clearly', 'merely', 'significantly', 'perfectly', 'absolutely', 'quite ', 'pretty'] //lists of words for replacements
 			var approvedTypes={"+ADJ": ADJ} //words which can be paired with superfluous adjectives
 			var punctuationTypes=["+CM", "+PUNCT", "+SENT", "+POSS"] //types which represent punctuation and should therefore be ignored in the API output
-		
+			var dict={"essential": "absolutely", "necessary": "absolutely", "facts": "actual", "planning": "advance", "preview": "advance", "reservations": "advance", "warning": "advance", "bonus": "added", "yes": "affirmative", "record": "all-time", "etc.": "and", "stranger": "anonymous", "anniversary": "annual", "gunman": "armed", "prosthesis": "artificial", "fundamentals": "basic", "necessities": "basic", "marina": "boat", "moment": "brief", "summary": "brief", "embers": "burning", "scrutiny": "careful", "proximity": "close", "fist": "closed", "annihilate": "completely", "destroyed": "completely", "eliminate": "completely", "engulfed": "completely", "filled": "completely", "surround": "completely", "parts": "component", "maintained": "constantly", "incumbent": "current", "trend": "current", "benefits": "desirable", "kinds": "different", "hole": "empty", "space": "empty", "result": "end", "eliminate": "entirely", "same": "exact", "opening": "exposed", "mask": "face", "approval": "favorable", "classmates": "fellow", "colleague": "fellow", "conclusion": "final", "end": "final", "outcome": "final", "ultimatum": "final", "conceived": "first", "imports": "foreign", "graduate": "former", "veteran": "former", "gift": "free", "whence": "from", "ice": "frozen", "tundra": "frozen", "satisfaction": "full", "plans": "future", "recurrence": "future", "public": "general", "injuries": "harmful", "honcho": "head", "tube": "hollow", "drawing": "illustrated", "regardless": "ir", "collaboration": "joint", "experts": "knowledgeable", "baby": "little", "witness": "live", "residents": "local", "breakthrough": "major", "feat": "major", "telepathy": "mental", "cooperation": "mutual", "interdependent": "mutually", "habitat": "native", "instinct": "natural", "beginning": "new", "construction": "new", "innovation": "new", "invention": "new", "recruit": "new", "pending": "now", "adage": "old", "cliche": "old", "custom": "old", "proverb": "old", "trench": "open", "conversation": "oral", "created": "originally", "exaggerate": "over", "cliche": "overused", "fad": "passing", "experience": "past", "history": "past", "memories": "past", "records": "past", "friend": "personal", "opinion": "personal", "RSVP": "Please", "opposites": "polar", "identification": "positive", "heat": "pre", "record": "pre", "industry": "private", "incumbent": "present", "plan": "proposed", "routine": "regular", "haven": "safe", "sanctuary": "safe", "dune": "sand", "danger": "serious", "point": "sharp", "unit": "single", "speck": "small", "persists": "still", "remains": "still", "impulse": "sudden", "total": "sum", "tantrum": "temper", "bit": "tiny", "destruction": "total", "facts": "true", "sincere": "truly", "goal": "ultimate", "subway": "underground", "emergency": "unexpected", "surprise": "unexpected", "mistake": "unintentional", "panacea": "universal", "anonymous": "unnamed", "custom": "usual", "ambush": "veiled", "pregnant": "very", "unique": "very", "mural": "wall", "snow": "white"}
+			var intialWordCount=0 //store the initial word count
+			var newWordCount=0 //store the current word count
+			
 			//word count
 			function countWords(text){
 				return text.trim().split(" ").length
 			}
 			
-			//get a random superfluous adverb
+			//get a random superfluous word of a desired type
 			function getRandomAddition(type){
 				var options=approvedTypes[type]
 				var rand=Math.floor(Math.random()*options.length)
@@ -167,12 +170,14 @@
 				removeButtons(id)
 			}
 			
-			
 			//reject the sugestion by removing the word and its buttons
 			function removeSuggestion(idNum){
 				var text = document.getElementById("id"+idNum);
 				text.parentNode.removeChild(text);
 				removeButtons(idNum)
+				
+				newWordCount-- //recognize that word count has decreased
+				updateWordCount() //show that the word count has gone down by one
 			}
 			
 			//remove the accept and reject buttons
@@ -184,7 +189,8 @@
 			}
 			
 			//use open xerox api to determine the part of speech of each word in context
-			function partsOfSpeech(intialWordCount, str){
+			function partsOfSpeech(str){
+                var vowels=["a","e","i","o","u"]
                  
 				//var numNeeded=desiredWordCount-initialWordCount+10
 				
@@ -223,25 +229,42 @@
 						var out="" //hold the output
 						var count=0 //count the number of woirds added
 						for(j = 0; j < words.length; j++){
-							if(!Object.keys(approvedTypes).includes(pos[j])){
-								//not an approved word so do nothing
-							}else if(words[j].charAt(0) == words[j].charAt(0).toUpperCase()){
+							if(words[j].charAt(0) == words[j].charAt(0).toUpperCase()){
 								//starts with a capital letter so ignore
-							}else{
-								//passed all tests so add a superfluous word
-								var addition=getRandomAddition(pos[j])
+							}else if(words[j] in dict){
+								//in the dictionary
+								
 								count++
-								//var id="\"id"+count+"\"" //for example, "id4"
+								var id="id"+count.toString()
+								var addedString=dict[words[j]]
+								out+="<span id=\""+id+"\" style=\"color: #0000ff\">"+addedString+"</span> "
+								out+="<span id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>"
+								out+="<span id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> "
+							}else if(!Object.keys(approvedTypes).includes(pos[j])){
+								//not an approved word so do nothing
+							}else{
+								//passed all tests so add a word
+								var addition=getRandomAddition(pos[j])
+								
+								//adjust for a/an if applicable
+								if(out.endsWith(" a ") && vowels.includes(addition.charAt(0))){
+									//of the form "a awesome ball" so change to "an"
+									out=out.substring(0,out.length-3)+" an "
+								}else if(out.endsWith(" an ") && !vowels.includes(addition.charAt(0))){
+									//of the form "an very interesting ball" so change to "a"
+									out=out.substring(0,out.length-4)+" a "
+								}
+								
+								count++
 								var id="id"+count.toString()
 								out+="<span id=\""+id+"\" style=\"color: #0000ff\" onClick=\"changeSuggestion("+count+",\'"+pos[j]+"\')\">"+addition+"</span> "
 								out+="<span id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>"
 								out+="<span id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> "
-								
-								
+							
 							}
 							out+=words[j]+" "
 						}
-						showResults(intialWordCount, count, out)
+						showResults(count, out)
 					}
 				}
 				http.send(params);
@@ -252,11 +275,14 @@
 			}
 			
 			//display the results to the user
-			function showResults(initialWordCount, numAdded, out){
-				finalWordCount = initialWordCount+numAdded
-				document.getElementById("progress").innerHTML = "Initial word count was " + initialWordCount + "; NEW word count is " + finalWordCount + "."
-            
+			function showResults(numAdded, out){
+				newWordCount = initialWordCount+numAdded
+				updateWordCount()
                 document.getElementById("paragraph").innerHTML = out;
+			}
+			
+			function updateWordCount(){
+				document.getElementById("progress").innerHTML = "Initial word count was " + initialWordCount + "; NEW word count is " + newWordCount + "."
 			}
 			
             var encoder = function() {
@@ -274,7 +300,7 @@
 					str = str.replace(/  /g," ") //replace double spaces with single spaces
 				}
 				initialWordCount=countWords(str)
-				partsOfSpeech(initialWordCount, str)
+				partsOfSpeech(str)
             };
             
         </script>
