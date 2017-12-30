@@ -1,1 +1,1 @@
-"# HackDuke2016" 
+Webpage which increases the word count of an essay by adding superfluous adjectives and redundancies. Created at HackDuke 2016. No longer working because Xerox took down their part-of-speech tagging API
