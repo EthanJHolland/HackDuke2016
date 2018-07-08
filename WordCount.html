@@ -29,6 +29,9 @@
                 font-size: 20px;
                 opacity: 0.8;
             }
+			.uncopyable {
+				user-select: none;
+			}
             #javascript {
                 margin-left: 0px;
             }
@@ -39,11 +42,11 @@
                 padding: 5px 10px 5px 10px;
                 border: 1px solid white;
             }
-            .button-encoder:hover {
+            /* .button-encoder:hover {
                 background: #dbff18;
                 color: #000000;
                 font-size: 60px;
-            }
+            } */
             
             #title {
                 text-align: left;
@@ -55,10 +58,10 @@
                 margin-top: 30px;
                 margin-bottom: 20px;
             }
-            #title:hover {
+            /* #title:hover {
                 border: 1px solid white;
                 background: #a5009f;
-            }
+            } */
             #intro {
                 text-align: justify;
                 padding-right: 40px;
@@ -69,11 +72,11 @@
                 margin-top: 30px;
                 margin-bottom: 20px;
             }
-            #intro:hover {
+            /* #intro:hover {
                 background: #a50b0b;
                 border: 1px solid white;
                 color: white;
-            }
+            } */
             
             #footer {
                 text-align: justify;
@@ -89,20 +92,20 @@
                 color: #5cf442;
                 margin-right: 40px;
             }
-            #footer:hover {
+            /* #footer:hover {
                 background: #a50b0b;
                 border: 1px solid white;
                 color: white;
-            }
+            } */
             #contact {
                 text-align: left;
                 font-size: 12px;
                 color: #37f74d;
             }
-            #contact:hover {
+            /* #contact:hover {
                 color: #ffe200;
                 font-size: 20px;
-            }
+            } */
         
         </style>
         
@@ -139,7 +142,7 @@
 		
 			//global variables
 			var ADJ=['really', 'incredibly', 'extremely', 'genuinely', 'unquestionably', 'truly', 'exceedingly', 'especially', 'extraordinarily', 'very', 'strikingly', 'unusually', 'remarkably', 'greatly', 'excessively', 'astonishingly ', 'considerably ', 'exceptionally', 'notably', 'usually', 'simply', 'relatively', 'fairly', 'widely', 'naturally', 'clearly', 'merely', 'significantly', 'perfectly', 'absolutely', 'quite ', 'pretty'] //lists of words for replacements
-			var approvedTypes={"+ADJ": ADJ} //words which can be paired with superfluous adjectives
+			var approvedTypes={"JJ": ADJ} //words which can be paired with superfluous adjectives, for now only adjectives excluding comparative (better) and superlative (best) adjs
 			var punctuationTypes=["+CM", "+PUNCT", "+SENT", "+POSS"] //types which represent punctuation and should therefore be ignored in the API output
 			var dict={"essential": "absolutely", "necessary": "absolutely", "facts": "actual", "planning": "advance", "preview": "advance", "reservations": "advance", "warning": "advance", "bonus": "added", "yes": "affirmative", "record": "all-time", "etc.": "and", "stranger": "anonymous", "anniversary": "annual", "gunman": "armed", "prosthesis": "artificial", "fundamentals": "basic", "necessities": "basic", "marina": "boat", "moment": "brief", "summary": "brief", "embers": "burning", "scrutiny": "careful", "proximity": "close", "fist": "closed", "annihilate": "completely", "destroyed": "completely", "eliminate": "completely", "engulfed": "completely", "filled": "completely", "surround": "completely", "parts": "component", "maintained": "constantly", "incumbent": "current", "trend": "current", "benefits": "desirable", "kinds": "different", "hole": "empty", "space": "empty", "result": "end", "eliminate": "entirely", "same": "exact", "opening": "exposed", "mask": "face", "approval": "favorable", "classmates": "fellow", "colleague": "fellow", "conclusion": "final", "end": "final", "outcome": "final", "ultimatum": "final", "conceived": "first", "imports": "foreign", "graduate": "former", "veteran": "former", "gift": "free", "whence": "from", "ice": "frozen", "tundra": "frozen", "satisfaction": "full", "plans": "future", "recurrence": "future", "public": "general", "injuries": "harmful", "honcho": "head", "tube": "hollow", "drawing": "illustrated", "regardless": "ir", "collaboration": "joint", "experts": "knowledgeable", "baby": "little", "witness": "live", "residents": "local", "breakthrough": "major", "feat": "major", "telepathy": "mental", "cooperation": "mutual", "interdependent": "mutually", "habitat": "native", "instinct": "natural", "beginning": "new", "construction": "new", "innovation": "new", "invention": "new", "recruit": "new", "pending": "now", "adage": "old", "cliche": "old", "custom": "old", "proverb": "old", "trench": "open", "conversation": "oral", "created": "originally", "exaggerate": "over", "cliche": "overused", "fad": "passing", "experience": "past", "history": "past", "memories": "past", "records": "past", "friend": "personal", "opinion": "personal", "RSVP": "Please", "opposites": "polar", "identification": "positive", "heat": "pre", "record": "pre", "industry": "private", "incumbent": "present", "plan": "proposed", "routine": "regular", "haven": "safe", "sanctuary": "safe", "dune": "sand", "danger": "serious", "point": "sharp", "unit": "single", "speck": "small", "persists": "still", "remains": "still", "impulse": "sudden", "total": "sum", "tantrum": "temper", "bit": "tiny", "destruction": "total", "facts": "true", "sincere": "truly", "goal": "ultimate", "subway": "underground", "emergency": "unexpected", "surprise": "unexpected", "mistake": "unintentional", "panacea": "universal", "anonymous": "unnamed", "custom": "usual", "ambush": "veiled", "pregnant": "very", "unique": "very", "mural": "wall", "snow": "white"}
 			var intialWordCount=0 //store the initial word count
@@ -189,89 +192,99 @@
 			}
 			
 			//use open xerox api to determine the part of speech of each word in context
-			function partsOfSpeech(str){
+			function partsOfSpeech(text){
                 var vowels=["a","e","i","o","u"]
-                 
-				//var numNeeded=desiredWordCount-initialWordCount+10
-				
+                 				
 				var http = new XMLHttpRequest();
-				var url = "https://services.open.xerox.com/bus/op/fst-nlp-tools/PartOfSpeechTaggingString";
-				var text = str
-				var params = "inputtext="+text+"&language=English";
+				var url = "https://api.cloudmersive.com/nlp/PosTaggerJson";
+				var params = {"InputText":text};
 				
 				http.open("POST", url, true);
 
 				//Send the proper header information along with the request
-				http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				http.setRequestHeader("Content-type", "application/json");
+				http.setRequestHeader("Apikey","28e63794-ef8a-4616-80bb-26fdd3709a19")
 				var pos=[]
 				http.onreadystatechange = function() {//Call a function when the state changes.
 					if(http.readyState == 4 && http.status == 200) {
-						//get parts of speech list
-						var apiOutput=http.responseText
-						
-						//get the list of words
-						var words=str.split(" ") //seperate the words so new words can be inserted
-						
-						var key="<SPAN class=\\\"pos-tag\\\">"
-						while(apiOutput.includes(key) && pos.length<words.length){
-							var index=apiOutput.indexOf(key)
-							apiOutput=apiOutput.substring(index+key.length,apiOutput.length)
-							var part=apiOutput.substring(0, apiOutput.indexOf("</SPAN>"))
+						var out=""; //hold output
+						var count=0; //number of words added
+
+						res=JSON.parse(http.responseText);
+						sentences=res.TaggedSentences;
+						for(var i=0; i<sentences.length; i++){
+							var sentence=sentences[i].Words;
+							for(var j=0; j<sentence.length; j++){
+								word=sentence[j].Word
+								pos=sentence[j].Tag
+
+								//don't change capitilazed words such as the beginning of a sentence or part of a named-entity
+								if(word[0]==word[0].toLowerCase()){
+									if(word in dict){
+										//this is one of the words which frequently appears with a certain superfluous word so add that word
+										var addition=dict[word]
+										
+										//adjust for a/an if applicable
+										if(out.endsWith(" a") && vowels.includes(addition.charAt(0))){
+											//of the form "a awesome ball" so change to "an"
+											out=out.substring(0,out.length-2)+" an"
+										}else if(out.endsWith(" an") && !vowels.includes(addition.charAt(0))){
+											//of the form "an very interesting ball" so change to "a"
+											out=out.substring(0,out.length-3)+" a"
+										}else if(out.endsWith(" A") && vowels.includes(addition.charAt(0))){
+											//of the form "an very interesting ball" so change to "a"
+											out=out.substring(0,out.length-2)+" An"
+										}else if(out.endsWith(" An") && !vowels.includes(addition.charAt(0))){
+											//of the form "an very interesting ball" so change to "a"
+											out=out.substring(0,out.length-3)+" A"
+										}
+										
+										count++;
+										var id="id"+count.toString()
+										out+=" <span id=\""+id+"\" style=\"color: #0000ff\">"+addition+"</span>";
+										out+="<span class=\"uncopyable\"> </span>";
+										out+="<span class=\"uncopyable\" id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>";
+										out+="<span class=\"uncopyable\" id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> ";
 							
-							//make sure punctuation is ignored so words and pos have corresponding entries and the same length
-							if(!punctuationTypes.includes(part)){
-								//not punctuation so add to list
-								pos.push(part)
-								
-							}
-						}
-						
-						var out="" //hold the output
-						var count=0 //count the number of woirds added
-						for(j = 0; j < words.length; j++){
-							if(words[j].charAt(0) == words[j].charAt(0).toUpperCase()){
-								//starts with a capital letter so ignore
-							}else if(words[j] in dict){
-								//in the dictionary
-								
-								count++
-								var id="id"+count.toString()
-								var addedString=dict[words[j]]
-								out+="<span id=\""+id+"\" style=\"color: #0000ff\">"+addedString+"</span> "
-								out+="<span id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>"
-								out+="<span id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> "
-							}else if(!Object.keys(approvedTypes).includes(pos[j])){
-								//not an approved word so do nothing
-							}else{
-								//passed all tests so add a word
-								var addition=getRandomAddition(pos[j])
-								
-								//adjust for a/an if applicable
-								if(out.endsWith(" a ") && vowels.includes(addition.charAt(0))){
-									//of the form "a awesome ball" so change to "an"
-									out=out.substring(0,out.length-3)+" an "
-								}else if(out.endsWith(" an ") && !vowels.includes(addition.charAt(0))){
-									//of the form "an very interesting ball" so change to "a"
-									out=out.substring(0,out.length-4)+" a "
+									}else if(Object.keys(approvedTypes).includes(pos)){
+										//correct pos so add a word
+										var addition=getRandomAddition(pos)
+										
+										//adjust for a/an if applicable
+										if(out.endsWith(" a") && vowels.includes(addition.charAt(0))){
+											//of the form "a awesome ball" so change to "an"
+											out=out.substring(0,out.length-2)+" an"
+										}else if(out.endsWith(" an") && !vowels.includes(addition.charAt(0))){
+											//of the form "an very interesting ball" so change to "a"
+											out=out.substring(0,out.length-3)+" a"
+										}else if(out.endsWith(" A") && vowels.includes(addition.charAt(0))){
+											//of the form "an very interesting ball" so change to "a"
+											out=out.substring(0,out.length-2)+" An"
+										}else if(out.endsWith(" An") && !vowels.includes(addition.charAt(0))){
+											//of the form "an very interesting ball" so change to "a"
+											out=out.substring(0,out.length-3)+" A"
+										}
+										
+										count++
+										var id="id"+count.toString()
+										out+=" <span id=\""+id+"\" style=\"color: #0000ff\" onClick=\"changeSuggestion("+count+",\'"+pos+"\')\">"+addition+"</span>";
+										out+="<span class=\"uncopyable\"> </span>";
+										out+="<span class=\"uncopyable\" id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>";
+										out+="<span class=\"uncopyable\" id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> ";
+									}
 								}
-								
-								count++
-								var id="id"+count.toString()
-								out+="<span id=\""+id+"\" style=\"color: #0000ff\" onClick=\"changeSuggestion("+count+",\'"+pos[j]+"\')\">"+addition+"</span> "
-								out+="<span id=\""+id+"Accept"+"\" style=\"color: #00ff00\" onClick=\"acceptSuggestion("+count+")\">O</span>"
-								out+="<span id=\""+id+"Reject"+"\" style=\"color: #ff0000\" onClick=\"removeSuggestion("+count+")\">X</span> "
-							
+								//put a space before the word if it isn't the first word and it isn't punctuation
+								if(pos[0].match(/[a-z]/i) && out!=""){ //punctuation is tagged with other punctuation rather than a string of letters
+									out+=" "; 
+								}
+								out+=word; //finally, add the word itself
 							}
-							out+=words[j]+" "
 						}
+						
 						showResults(count, out)
 					}
 				}
-				http.send(params);
-				//POST https://services.open.xerox.com/bus/op/fst-nlp-tools/PartOfSpeechTaggingString
-				//Content-Type: application/x-www-form-urlencoded
-				//Content-Length: 28
-				//inputtext=text&language=text
+				http.send(JSON.stringify(params));
 			}
 			
 			//display the results to the user
